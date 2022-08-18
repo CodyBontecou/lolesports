@@ -49,7 +49,7 @@ func main() {
 	group := r.Group("/lolesports")
 
 	group.GET("/games", func(c *gin.Context) {
-		get.LiveEvents(eventSyncer, c)
+		get.LiveEvents(c, service)
 	})
 
 	group.GET("/event/:id", func(c *gin.Context) {
