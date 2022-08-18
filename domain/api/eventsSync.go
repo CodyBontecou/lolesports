@@ -123,13 +123,13 @@ func (es *EventSyncer) getLiveEventData(service *db.UseCase, event *events.AllEv
 			continue
 		}
 
+		var timeCheck *time.Time
 		if gameData.LastTimeChecked != nil {
-			aux := gameData.LastTimeChecked.Add(10 * time.Second)
-			gameData.LastTimeChecked = &aux
+			*timeCheck = gameData.LastTimeChecked.Add(10 * time.Second)
 		}
 
 		// WINDOW
-		window, err := api.GetWindow(game.Id, gameData.LastTimeChecked)
+		window, err := api.GetWindow(game.Id, timeCheck)
 		if err != nil {
 			fmt.Println(err.Error())
 			return
@@ -160,10 +160,10 @@ func (es *EventSyncer) getLiveEventData(service *db.UseCase, event *events.AllEv
 				set := bson.D{{"$set", bson.M{fmt.Sprintf("games.%s.fetched", game.Id): true}}}
 				service.Repository.EventsRepo.UpdateMany(eventFilter, set)
 			}
-			if gameData.LastTimeChecked == nil {
+			if timeCheck == nil {
 				var roundedTime = frame.Rfc460Timestamp.Round(roundValue)
-				gameData.LastTimeChecked = &roundedTime
-			} else if frame.Rfc460Timestamp.Sub(*gameData.LastTimeChecked) < 0 {
+				timeCheck = &roundedTime
+			} else if frame.Rfc460Timestamp.Sub(*timeCheck) < 0 {
 				continue
 			}
 
@@ -217,7 +217,7 @@ func (es *EventSyncer) getLiveEventData(service *db.UseCase, event *events.AllEv
 		}
 
 		// DETAIL
-		detailFrames, err := api.GetDetails(game.Id, gameData.LastTimeChecked)
+		detailFrames, err := api.GetDetails(game.Id, timeCheck)
 		if err != nil {
 			fmt.Println(err.Error())
 			return
@@ -237,7 +237,7 @@ func (es *EventSyncer) getLiveEventData(service *db.UseCase, event *events.AllEv
 		}
 
 		for _, frame := range detailFrames {
-			if frame.Rfc460Timestamp.Sub(*gameData.LastTimeChecked) < 0 {
+			if frame.Rfc460Timestamp.Sub(*timeCheck) < 0 {
 				continue
 			}
 			// check if game started
@@ -271,8 +271,9 @@ func (es *EventSyncer) getLiveEventData(service *db.UseCase, event *events.AllEv
 			}
 		}
 
-		if gameData.LastTimeChecked != nil {
-			set := bson.D{{"$set", bson.M{fmt.Sprintf("games.%s.last_time_checked", game.Id): gameData.LastTimeChecked}}}
+		if timeCheck != nil {
+			gameData.LastTimeChecked = timeCheck
+			set := bson.D{{"$set", bson.M{fmt.Sprintf("games.%s.last_time_checked", game.Id): timeCheck}}}
 			service.Repository.EventsRepo.UpdateMany(eventFilter, set)
 		}
 	}
