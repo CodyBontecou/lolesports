@@ -23,12 +23,12 @@ func GetLiveEvents() (*LiveEvents, error) {
 		return nil, err
 	}
 
-	if resp.StatusCode != 200 {
-		return nil, errors.New(fmt.Sprintf("Respuesta: %d", resp.StatusCode))
-	}
-
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body) // response body is []byte
+
+	if resp.StatusCode != 200 {
+		return nil, errors.New(fmt.Sprintf("Respuesta: %d - %s", resp.StatusCode, string(body)))
+	}
 
 	var result LiveEvents
 	if err := json.Unmarshal(body, &result); err != nil { // Parse []byte to the go struct pointer
@@ -52,12 +52,12 @@ func GetDetails(id string, time *time.Time) ([]*Frame, error) {
 		return nil, err
 	}
 
-	if resp.StatusCode != 200 {
-		return nil, errors.New(fmt.Sprintf("Respuesta: %d", resp.StatusCode))
-	}
-
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body) // response body is []byte
+
+	if resp.StatusCode != 200 {
+		return nil, errors.New(fmt.Sprintf("Respuesta: %d - %s", resp.StatusCode, string(body)))
+	}
 
 	var result Frames
 	if err := json.Unmarshal(body, &result); err != nil { // Parse []byte to the go struct pointer
@@ -84,13 +84,13 @@ func GetWindow(id string, time *time.Time) (*Window, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	if resp.StatusCode != 200 {
-		return nil, errors.New(fmt.Sprintf("Respuesta: %d", resp.StatusCode))
-	}
-
+	
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body) // response body is []byte
+
+	if resp.StatusCode != 200 {
+		return nil, errors.New(fmt.Sprintf("Respuesta: %d - %s", resp.StatusCode, string(body)))
+	}
 
 	var result Window
 	if err := json.Unmarshal(body, &result); err != nil { // Parse []byte to the go struct pointer
