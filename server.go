@@ -46,15 +46,17 @@ func main() {
 
 	r.Use(cors.Default())
 
-	r.GET("/games", func(c *gin.Context) {
+	group := r.Group("/lolesports")
+
+	group.GET("/games", func(c *gin.Context) {
 		get.LiveEvents(eventSyncer, c)
 	})
 
-	r.GET("/event/:id", func(c *gin.Context) {
+	group.GET("/event/:id", func(c *gin.Context) {
 		get.Event(c, service)
 	})
 
-	r.GET("/frames/:gameId/:time", func(c *gin.Context) {
+	group.GET("/frames/:gameId/:time", func(c *gin.Context) {
 		get.Frames(c, service)
 	}) // listen and serve on 0.0.0.0:8080
 
