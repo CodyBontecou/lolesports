@@ -56,7 +56,7 @@ func (es *EventSyncer) SyncLiveEvents(service *db.UseCase) {
 				continue
 			}
 			if eventData, exists := es.LiveEvents[value.Id]; !exists {
-
+				value.State = "inProgress"
 				newEvent := &events.AllEventData{
 					Event: value,
 					Games: make(map[string]*events.GameData),
@@ -76,6 +76,7 @@ func (es *EventSyncer) SyncLiveEvents(service *db.UseCase) {
 				delete(es.LiveEvents, key)
 			}
 		}
+
 		es.Mu.Unlock()
 		fmt.Println("sync live events")
 		time.Sleep(10 * time.Second)
