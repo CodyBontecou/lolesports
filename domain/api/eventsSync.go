@@ -125,7 +125,8 @@ func (es *EventSyncer) getLiveEventData(service *db.UseCase, event *events.AllEv
 
 		var timeCheck *time.Time
 		if gameData.LastTimeChecked != nil {
-			*timeCheck = gameData.LastTimeChecked.Add(10 * time.Second)
+			aux := gameData.LastTimeChecked.Add(10 * time.Second)
+			timeCheck = &aux
 		}
 
 		// WINDOW
