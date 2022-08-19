@@ -8,7 +8,9 @@ import (
 	"lolesports/domain/db/events"
 	"lolesports/domain/db/frames"
 	api "lolesports/domain/service"
+	"regexp"
 	"runtime"
+	"strings"
 	"sync"
 	"time"
 )
@@ -138,16 +140,30 @@ func (es *EventSyncer) getLiveEventData(service *db.UseCase, event *events.AllEv
 		}
 
 		if gameData.GameMetadata == nil {
+			reg, _ := regexp.Compile("[^a-zA-Z0-9]+")
 			for index, participant := range window.GameMetadata.BlueTeamMetadata.ParticipantMetadata {
-				champ, _ := service.Repository.ChampsRepo.FindOne(bson.D{{"_id", participant.ChampionId}})
-				participant.ChampionId = champ.Key
-				window.GameMetadata.BlueTeamMetadata.ParticipantMetadata[index] = participant
+				url := reg.ReplaceAllString(strings.ToLower(participant.ChampionId), "")
+				champ, _ := service.Repository.ChampsRepo.FindOne(bson.D{{"url", url}})
+				if champ != nil {
+					participant.ChampionId = champ.Key
+					window.GameMetadata.BlueTeamMetadata.ParticipantMetadata[index] = participant
+					continue
+				}
+
+				fmt.Println("champ not found " + participant.ChampionId)
 			}
 
 			for index, participant := range window.GameMetadata.RedTeamMetadata.ParticipantMetadata {
-				champ, _ := service.Repository.ChampsRepo.FindOne(bson.D{{"_id", participant.ChampionId}})
-				participant.ChampionId = champ.Key
-				window.GameMetadata.RedTeamMetadata.ParticipantMetadata[index] = participant
+				url := reg.ReplaceAllString(strings.ToLower(participant.ChampionId), "")
+				champ, _ := service.Repository.ChampsRepo.FindOne(bson.D{{"url", url}})
+
+				if champ != nil {
+					participant.ChampionId = champ.Key
+					window.GameMetadata.RedTeamMetadata.ParticipantMetadata[index] = participant
+					continue
+				}
+
+				fmt.Println("champ not found " + participant.ChampionId)
 			}
 
 			gameData.GameMetadata = window.GameMetadata
