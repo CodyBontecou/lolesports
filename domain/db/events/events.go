@@ -245,3 +245,64 @@ func (repository *scenesRepository) AddFrames2Event(ctx context.Context, eventID
 
 	return nil
 }
+
+func (repository *scenesRepository) GetNotFetched() ([]*AllEventData, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), mongoQueryTimeout)
+	defer cancel()
+
+	projection := bson.A{
+		bson.M{"$project": bson.M{
+			"event": 1,
+			"games": bson.M{"$objectToArray": "$games"},
+		}},
+
+		bson.M{"$unwind": bson.M{"path": "$games"}},
+		bson.M{"$match": bson.M{"games.v.fetched": false}},
+		bson.M{"$group": bson.M{
+			"_id": "$event.id",
+			"games": bson.M{
+				"$push": "$games",
+			},
+			"event": bson.M{
+				"$first": "$event",
+			},
+		}},
+		bson.M{"$project": bson.M{
+			"event": 1,
+			"games": bson.M{"$arrayToObject": "$games"},
+		}},
+	}
+
+	logCTX := utils.BaseLogCtx()
+	response, err := repository.db.Collection(eventCollectionName).Aggregate(
+		ctx,
+		projection,
+		nil,
+	)
+
+	if err != nil {
+		utils.WithFields(logCTX, log.Fields{
+			"context": "events_find",
+			"error":   strings.ReplaceAll(err.Error(), " ", "_"),
+		})
+		logCTX.Level = log.ErrorLevel
+		repository.logger.HandleLog(logCTX)
+		return nil, err
+	}
+	defer response.Close(ctx)
+
+	var events []*AllEventData
+	err = response.All(ctx, &events)
+	if err != nil {
+		utils.WithFields(logCTX, log.Fields{
+			"context": "events_find",
+			"error":   strings.ReplaceAll(err.Error(), " ", "_"),
+		})
+		logCTX.Level = log.ErrorLevel
+		repository.logger.HandleLog(logCTX)
+		return nil, err
+	}
+
+	return events, nil
+
+}

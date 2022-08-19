@@ -17,6 +17,7 @@ type Repository interface {
 	FindOne(filter bson.M) (*AllEventData, error)
 	AddFrames2Event(ctx context.Context, eventID string, lastFrame int, frames []api.Frame) error
 	AddWindowFrames2Event(ctx context.Context, eventID string, lastFrame int, frames []api.WindowFrame) error
+	GetNotFetched() ([]*AllEventData, error)
 }
 
 type scenesRepository struct {

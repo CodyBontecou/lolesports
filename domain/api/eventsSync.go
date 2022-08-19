@@ -95,6 +95,18 @@ func (es *EventSyncer) GetLiveEventsData(service *db.UseCase) {
 				es.getLiveEventData(service, event)
 			}()
 		}
+
+		if len(es.LiveEvents) == 0 {
+			events, _ := service.Repository.EventsRepo.GetNotFetched()
+			for _, event := range events {
+				event := event
+				wg.Add(1)
+				go func() {
+					defer wg.Done()
+					es.getLiveEventData(service, event)
+				}()
+			}
+		}
 		wg.Wait()
 		es.Mu.Unlock()
 		time.Sleep(1 * time.Second)
@@ -142,7 +154,7 @@ func (es *EventSyncer) getLiveEventData(service *db.UseCase, event *events.AllEv
 				if participant.ChampionId == "FiddleSticks" {
 					participant.ChampionId = "Fiddlesticks"
 				}
-				
+
 				champ, _ := service.Repository.ChampsRepo.FindOne(bson.D{{"_id", participant.ChampionId}})
 				if champ != nil {
 					participant.ChampionId = champ.Key
