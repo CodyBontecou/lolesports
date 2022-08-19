@@ -96,7 +96,7 @@ func (es *EventSyncer) GetLiveEventsData(service *db.UseCase) {
 			}()
 		}
 
-		if len(es.LiveEvents) == 0 {
+		/*if len(es.LiveEvents) == 0 {
 			events, _ := service.Repository.EventsRepo.GetNotFetched()
 			for _, event := range events {
 				event := event
@@ -106,7 +106,7 @@ func (es *EventSyncer) GetLiveEventsData(service *db.UseCase) {
 					es.getLiveEventData(service, event)
 				}()
 			}
-		}
+		}*/
 		wg.Wait()
 		es.Mu.Unlock()
 		time.Sleep(1 * time.Second)
