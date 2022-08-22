@@ -62,7 +62,8 @@ func (es *EventSyncer) SyncLiveEvents(service *db.UseCase) {
 					Games: make(map[string]*events.GameData),
 				}
 
-				newEvent, err = service.Repository.EventsRepo.Add(context.Background(), *newEvent)
+				savedEvent, _ := service.Repository.EventsRepo.Add(context.Background(), *newEvent)
+				newEvent.Games = savedEvent.Games
 				es.LiveEvents[newEvent.Event.Id] = newEvent
 			} else {
 				eventData.Event = value

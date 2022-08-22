@@ -27,17 +27,6 @@ func (repository *scenesRepository) Add(ctx context.Context, event AllEventData)
 	logCTX := utils.BaseLogCtx()
 
 	options := options.FindOneAndUpdate().SetUpsert(true)
-	options.Projection = bson.D{
-		{"event", 1},
-		{"last_frame", 1},
-		{"last_window_frame", 1},
-		{"paused_at", 1},
-		{"paused_duration", 1},
-		{"game_metadata", 1},
-		{"last_time_checked", 1},
-		{"game_start_time", 1},
-		{"perks_metadata", 1},
-	}
 
 	response := repository.db.Collection(eventCollectionName).FindOneAndUpdate(
 		ctx,
@@ -55,15 +44,16 @@ func (repository *scenesRepository) Add(ctx context.Context, event AllEventData)
 		return nil, response.Err()
 	}
 
-	response.Decode(&event)
+	var savedEvent AllEventData
+	response.Decode(&savedEvent)
 
 	utils.WithFields(logCTX, log.Fields{
 		"context": "event_repository_add",
-		"detail":  fmt.Sprintf("Saved_event:%s", event.Event.Id),
+		"detail":  fmt.Sprintf("Saved_event:%s", savedEvent.Event.Id),
 	})
 	repository.logger.HandleLog(logCTX)
 
-	return &event, nil
+	return &savedEvent, nil
 }
 
 func (repository *scenesRepository) UpdateMany(filter bson.D, set bson.D) error {
