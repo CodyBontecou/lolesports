@@ -55,8 +55,8 @@ func (es *EventSyncer) SyncLiveEvents(service *db.UseCase) {
 			if value.Type == "show" {
 				continue
 			}
+			value.State = "inProgress"
 			if eventData, exists := es.LiveEvents[value.Id]; !exists {
-				value.State = "inProgress"
 				newEvent := &events.AllEventData{
 					Event: value,
 					Games: make(map[string]*events.GameData),
