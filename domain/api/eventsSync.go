@@ -25,7 +25,7 @@ func NewEventSyncer(service *db.UseCase) *EventSyncer {
 		LiveEvents: make(map[string]*events.AllEventData),
 	}
 
-	liveEvents, err := service.Repository.EventsRepo.Find(bson.M{ /*"event.state": "inProgress"*/ }, nil)
+	liveEvents, err := service.Repository.EventsRepo.Find(bson.M{"event.state": "inProgress"}, nil)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -55,7 +55,6 @@ func (es *EventSyncer) SyncLiveEvents(service *db.UseCase) {
 			if value.Type == "show" {
 				continue
 			}
-			value.State = "inProgress"
 			if eventData, exists := es.LiveEvents[value.Id]; !exists {
 				newEvent := &events.AllEventData{
 					Event: value,
@@ -71,12 +70,12 @@ func (es *EventSyncer) SyncLiveEvents(service *db.UseCase) {
 			}
 		}
 
-		/*for key, value := range es.LiveEvents {
+		for key, value := range es.LiveEvents {
 			if value.Event.State == "ended" {
 				service.Repository.EventsRepo.Add(context.Background(), *value)
 				delete(es.LiveEvents, key)
 			}
-		}*/
+		}
 
 		es.Mu.Unlock()
 		fmt.Println("sync live events")
