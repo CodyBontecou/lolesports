@@ -130,8 +130,12 @@ func (mongoDatastore *mongoDatastore) Connect(config configuration.Configuration
 	mongoDatastore.db = *database
 
 	// Access a MongoDB collection through a database
-	database.Collection("events")
-	database.Collection("frames")
+	events := database.Collection("events")
+	addIndex(events, "event.id", -1, options.Index().SetUnique(true))
+
+	frames := database.Collection("frames")
+	addIndex(frames, "event_id", -1, nil)
+	addIndex(frames, "game_id", -1, nil)
 
 	// TODO: Remove
 	databases, err := client.ListDatabaseNames(context.Background(), bson.M{})
